@@ -1,4 +1,3 @@
 fastapi
-sentence-transformers==2.4.0
+sentence-transformers>=3.3.1
 uvicorn[standard]
-einops
