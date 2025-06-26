@@ -10,6 +10,9 @@ dependencies = [
     "uvicorn[standard]>=0.34.3",
 ]
 
+[tool.uv.pip]
+torch-backend = "cpu"
+
 [dependency-groups]
 dev = [
     "httpx>=0.28.1",
