@@ -1,8 +1,7 @@
 # -------- Build stage --------
-FROM python:3.11.13-slim-bookworm AS build
+FROM python:3.11.10-slim-bookworm AS build
 
 ENV DEBIAN_FRONTEND=noninteractive
-ENV PORT=8080
 
 RUN --mount=target=/var/lib/apt/lists,type=cache,sharing=locked \
     --mount=target=/var/cache/apt,type=cache,sharing=locked \
@@ -20,7 +19,7 @@ SentenceTransformer("hotchpotch/static-embedding-japanese")
 PY
 
 # -------- Runtime stage --------
-FROM python:3.11.13-slim-bookworm AS runtime
+FROM python:3.11.10-slim-bookworm AS runtime
 ENV PORT=8080
 WORKDIR /app
 
