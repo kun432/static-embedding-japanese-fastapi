@@ -1,4 +1,5 @@
 fastapi
-sentence-transformers==2.4.0
+sentence-transformers>=3.3.1
 uvicorn[standard]
-einops
+--extra-index-url https://download.pytorch.org/whl/cpu
+torch==2.7.1

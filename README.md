@@ -1,112 +1,125 @@
-# STAPI: Sentence Transformers API
+# Static-Embedding-Japanese-FastAPI
 
-OpenAI compatible embedding API that uses Sentence Transformer for embeddings
-
-Container Image: `ghcr.io/substratusai/stapi`
-
-Support the project by adding a star! ❤️  
-Join us on Discord:  
-<a href="https://discord.gg/JeXhcmjZVm">
-<img alt="discord-invite" src="https://dcbadge.vercel.app/api/server/JeXhcmjZVm?style=flat">
-</a>
+OpenAI compatible embedding API that uses [hotchpotch/static-embedding-japanese](https://huggingface.co/hotchpotch/static-embedding-japanese) for embeddings
 
 ## Install
-There are 2 options to install STAPI: Docker or local Python install.
+
+There are 2 options to install: Docker or local Python install.
 
 ### Install (Docker)
+
 Run the API locally using Docker:
+
 ```bash
-docker run -p 8080:8080 -d ghcr.io/substratusai/stapi
+docker run -p 8080:8080 -d ghcr.io/kun432/static-embedding-japanese-fastapi:v0.0.1
+```
+
+Also, you can set the `DIM` environment variable to change the embedding dimension.
+
+```bash
+docker run -e DIM=128 -p 8080:8080 -d ghcr.io/kun432/static-embedding-japanese-fastapi:v0.0.1
 ```
 
 ### Install (Local python)
-Install and run the API server locally using Python. Only supports python 3.9, 3.10 and 3.11.
+
+Install and run the API server locally using Python. uv is required.
 
 Clone the repo:
+
 ```bash
-git clone https://github.com/substratusai/stapi
-cd stapi
+git clone https://github.com/kun432/static-embedding-japanese-fastapi
+cd static-embedding-japanese-fastapi
 ```
 
 Install dependencies:
+
 ```bash
-pip3 install -r requirements.txt
+uv sync
 ```
 
 Run the webserver:
+
 ```bash
-uvicorn main:app --port 8080 --reload
+uv run -- uvicorn main:app --port 8080 --reload
+```
+
+Also, you can set the `DIM` environment variable to change the embedding dimension.
+
+```bash
+DIM=128 uv run -- uvicorn main:app --port 8080 --reload
 ```
 
 ## Usage
-After you've installed STAPI,
-you can visit the API docs on [http://localhost:8080/docs](http://localhost:8080/docs)
+
+After you've installed, you can visit the API docs on [http://localhost:8080/docs](http://localhost:8080/docs)
 
 You can also use CURL to get embeddings:
+
 ```bash
 curl http://localhost:8080/v1/embeddings \
   -H "Content-Type: application/json" \
   -d '{
     "input": "Your text string goes here",
-    "model": "all-MiniLM-L6-v2"
+    "model": "hotchpotch/static-embedding-japanese"
   }'
 ```
 
 Even the OpenAI Python client can be used to get embeddings:
+
 ```python
-import openai
-openai.api_base = "http://localhost:8080/v1"
-openai.api_key = "this isn't used but openai client requires it"
-model = "all-MiniLM-L6-v2"
-embedding = openai.Embedding.create(input="Some text", model=model)["data"][0]["embedding"]
-print(embedding)
+from openai import OpenAI
+
+client = OpenAI(
+    base_url = "http://localhost:8080/v1"
+    api_key = "this isn't used but openai client requires it"
+)
+
+response = client.embeddings.create(
+  input="Some text",
+  model="hotchpotch/static-embedding-japanese"
+)
+print(response.data[0].embedding)
 ```
 
 ## Supported Models
-Any model that's supported by Sentence Transformers should also work as-is
-with STAPI.
-Here is a list of [pre-trained models](https://www.sbert.net/docs/pretrained_models.html) available with Sentence Transformers.
 
-By default the `all-MiniLM-L6-v2` model is used and preloaded on startup. You
-can preload any supported model by setting the `MODEL` environment variable.
+`hotchpotch/static-embedding-japanese` is the only model supported. ()
 
-For example, if you want to preload the `multi-qa-MiniLM-L6-cos-v1`, you
-could tweak the `docker run` command like this:
+If you want to use different models, you should check:
+
+- [substratusai/stapi](https://github.com/substratusai/stapi)
+- [michaelfeil/infinity](https://github.com/michaelfeil/infinity)
+
+## Develop
+
+Clone the repo:
+
 ```bash
-docker run -e MODEL=multi-qa-MiniLM-L6-cos-v1  -p 8080:8080 -d \
-  ghcr.io/substratusai/sentence-transformers-api
+git clone https://github.com/kun432/static-embedding-japanese-fastapi
+cd static-embedding-japanese-fastapi
 ```
 
-Note that STAPI will only serve the model that it is preloaded with. You
-should create another instance of STAPI to serve another model. The `model`
-parameter as part of the request body is simply ignored.
+Install dependencies:
 
-
-## Integrations
-It's easy to utilize the embedding server with various other tools because
-the API is compatible with the OpenAI Embedding API.
-
-### Weaviate
-You can use the Weaviate text2vec-openai module and use the
-STAPI OpenAI compatible endpoint.
-
-In your Weaviate Schema
-use the following module config, assuming STAPI endpoint
-is available at `http://stapi:8080`:
+```bash
+uv sync
 ```
-  "vectorizer": "text2vec-openai",
-  "moduleConfig": {
-    "text2vec-openai": {
-      "model": "davinci",
-      "baseURL": "http://stapi:8080"
-    }
-  }
+
+Install pre-commit hooks:
+
+```bash
+uv run pre-commit install
 ```
-For the OpenAI API key you can use any key, it won't be checked.
 
-Read the [STAPI Weaviate Guide](https://github.com/substratusai/stapi/tree/main/weaviate) for more details.
+## TODO
 
-## Creators
-Feel free to contact any of us:
-* [Sam Stoelinga aka Samos123](https://www.linkedin.com/in/samstoelinga/)
-* [Nick Stogner](https://www.linkedin.com/in/nstogner/)
+- [ ] remove requirement.txt so that dependencies are managed by uv only
+
+## Acknowledgments
+
+This project is based on and extends ["STAPI: Sentence Transformers API"](https://github.com/substratusai/stapi) by Sam Stoelinga aka Samos123 & Nick Stogner released under the Apache License 2.0.
+I would like to thank Sam & Nick for creating and maintaining the original codebase, and for granting permission to use, modify, and redistribute it under the terms of the Apache License 2.0.
+All significant changes and additions in this repository were implemented by kun432, and are likewise released under the Apache License 2.0.
+
+In addition to the codebase, Docker image bundles Sentence Transformers model ["hotchpotch/static-embedding-japanese"](https://huggingface.co/hotchpotch/static-embedding-japanese) by Yuichi Tateno aka hotchpotch released under the MIT License.
+I would like to thank hotchpotch for creating and maintaining the original model, and for granting permission to use, modify, and redistribute it under the terms of the MIT License.

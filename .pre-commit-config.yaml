@@ -1,0 +1,39 @@
+fail_fast: true
+
+repos:
+  # Standard hooks
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v5.0.0
+    hooks:
+      - id: trailing-whitespace
+      - id: end-of-file-fixer
+      - id: check-yaml
+      - id: check-toml
+      - id: check-json
+      - id: check-added-large-files
+      - id: check-merge-conflict
+      - id: debug-statements
+
+  # Python formatting and linting
+  - repo: local
+    hooks:
+      - id: ruff-format
+        name: Ruff Format
+        entry: uv run ruff
+        args: [format]
+        language: system
+        types: [python]
+        pass_filenames: false
+      - id: ruff
+        name: Ruff
+        entry: uv run ruff
+        args: ["check", "--fix", "--exit-non-zero-on-fix"]
+        types: [python]
+        language: system
+        pass_filenames: false
+      - id: uv-lock-check
+        name: Check uv.lock is up to date
+        entry: uv lock --check
+        language: system
+        files: ^(pyproject\.toml|uv\.lock)$
+        pass_filenames: false
