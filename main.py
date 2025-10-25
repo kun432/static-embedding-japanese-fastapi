@@ -8,6 +8,7 @@ if platform.system() == "Darwin":
     os.environ.setdefault("PYTORCH_ENABLE_MPS_FALLBACK", "1")
 
 from fastapi import FastAPI, HTTPException
+from starlette.concurrency import run_in_threadpool
 from pydantic import BaseModel, Field
 from sentence_transformers import SentenceTransformer
 
@@ -74,7 +75,11 @@ async def embedding(item: EmbeddingRequest) -> EmbeddingResponse:
     if model is None:
         raise HTTPException(status_code=500, detail="model not loaded")
     if isinstance(item.input, str):
-        vectors = model.encode(item.input, show_progress_bar=False)
+        vectors = await run_in_threadpool(
+            model.encode,
+            item.input,
+            show_progress_bar=False,
+        )
         tokens = len(vectors)
         return EmbeddingResponse(
             data=[EmbeddingData(embedding=vectors, index=0, object="embedding")],
@@ -100,7 +105,8 @@ async def embedding(item: EmbeddingRequest) -> EmbeddingResponse:
                 )
             texts.append(text_input)
 
-        raw_embeddings = model.encode(
+        raw_embeddings = await run_in_threadpool(
+            model.encode,
             texts,
             show_progress_bar=False,
             convert_to_numpy=True,

@@ -11,13 +11,13 @@ There are 2 options to install: Docker or local Python install.
 Run the API locally using Docker:
 
 ```bash
-docker run -p 8080:8080 -d ghcr.io/kun432/static-embedding-japanese-fastapi:v0.0.2
+docker run -p 8080:8080 -d ghcr.io/kun432/static-embedding-japanese-fastapi:v0.0.3
 ```
 
 Also, you can set the `DIM` environment variable to change the embedding dimension.
 
 ```bash
-docker run -e DIM=128 -p 8080:8080 -d ghcr.io/kun432/static-embedding-japanese-fastapi:v0.0.2
+docker run -e DIM=128 -p 8080:8080 -d ghcr.io/kun432/static-embedding-japanese-fastapi:v0.0.3
 ```
 
 ### Install (Local python)
