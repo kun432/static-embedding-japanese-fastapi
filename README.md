@@ -55,11 +55,27 @@ After you've installed, you can visit the API docs on [http://localhost:8080/doc
 
 You can also use CURL to get embeddings:
 
+For a single string,
+
 ```bash
 curl http://localhost:8080/v1/embeddings \
   -H "Content-Type: application/json" \
   -d '{
     "input": "Your text string goes here",
+    "model": "hotchpotch/static-embedding-japanese"
+  }'
+```
+
+For a list of strings,
+
+```bash
+curl http://localhost:8080/v1/embeddings \
+  -H "Content-Type: application/json" \
+  -d '{
+    "input": [
+      "Your text string goes here",
+      "あなたのテキスト文字列がここに入ります。"
+    ],
     "model": "hotchpotch/static-embedding-japanese"
   }'
 ```

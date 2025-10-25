@@ -25,9 +25,7 @@ except ValueError as e:
         f"Invalid DIM={raw_dim!r}. Must be an integer. Supported values: {sorted(SUPPORTED_DIMS)}"
     ) from e
 if DIM not in SUPPORTED_DIMS:
-    raise RuntimeError(
-        f"Invalid DIM={DIM}. Supported values: {sorted(SUPPORTED_DIMS)}"
-    )
+    raise RuntimeError(f"Invalid DIM={DIM}. Supported values: {sorted(SUPPORTED_DIMS)}")
 model_name = MODEL_NAME
 model: SentenceTransformer | None = None
 
@@ -35,9 +33,7 @@ logger.info(f"Loading model '{model_name}' with DIM={DIM}")
 
 
 class EmbeddingRequest(BaseModel):
-    input: str | list[str] = Field(
-        examples=["substratus.ai provides the best LLM tools"]
-    )
+    input: str | list[str] = Field(examples=["substratus.ai provides the best LLM tools"])
     model: str = Field(
         examples=[model_name],
         default=model_name,
@@ -65,10 +61,7 @@ class EmbeddingResponse(BaseModel):
 @asynccontextmanager
 async def lifespan(app: FastAPI) -> None:  # noqa: RUF029
     global model
-    model = SentenceTransformer(
-        model_name,
-        truncate_dim=DIM
-    )
+    model = SentenceTransformer(model_name, truncate_dim=DIM)
     yield
 
 
@@ -90,28 +83,46 @@ async def embedding(item: EmbeddingRequest) -> EmbeddingResponse:
             object="list",
         )
     if isinstance(item.input, list):
-        embeddings = []
-        tokens = 0
-        for index, text_input in enumerate(item.input):
+        if not item.input:
+            return EmbeddingResponse(
+                data=[],
+                model=model_name,
+                usage=Usage(prompt_tokens=0, total_tokens=0),
+                object="list",
+            )
+
+        texts: list[str] = []
+        for text_input in item.input:
             if not isinstance(text_input, str):
                 raise HTTPException(
                     status_code=400,
                     detail="input needs to be an array of strings or a string",
                 )
-            vectors = model.encode(text_input, show_progress_bar=False)
+            texts.append(text_input)
+
+        raw_embeddings = model.encode(
+            texts,
+            show_progress_bar=False,
+            convert_to_numpy=True,
+        )
+
+        if getattr(raw_embeddings, "ndim", 1) == 1:
+            vectors_list = [raw_embeddings.tolist()]
+        else:
+            vectors_list = raw_embeddings.tolist()
+
+        embeddings = []
+        tokens = 0
+        for index, vectors in enumerate(vectors_list):
             tokens += len(vectors)
-            embeddings.append(
-                EmbeddingData(embedding=vectors, index=index, object="embedding")
-            )
+            embeddings.append(EmbeddingData(embedding=vectors, index=index, object="embedding"))
         return EmbeddingResponse(
             data=embeddings,
             model=model_name,
             usage=Usage(prompt_tokens=tokens, total_tokens=tokens),
             object="list",
         )
-    raise HTTPException(
-        status_code=400, detail="input needs to be an array of strings or a string"
-    )
+    raise HTTPException(status_code=400, detail="input needs to be an array of strings or a string")
 
 
 @app.get("/")
